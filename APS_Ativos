@@ -1,0 +1,59 @@
+#APS - CrowdFunding
+#Aluno: Matheus Cerutti Savian
+
+donator: public(HashMap(uint256, address)) # dicionário para os doadores (key:value)
+owner: public(adress)                      # endereço do dono do crowdfunding
+
+goal: uint256             # meta a ser batida
+crowdsum: public(uint256) # somatório do valor total arrecado
+
+deadline: public(uint256) # encerramento do crowdfunding
+
+end: public(bool)         # espécie de sinalização se o dono encerrou o crowdfunding
+
+# Função de deploy do contrato
+@external
+def __init__(_goal: uint256, _deadline: uint256):
+    
+    self.deadline = block.timestamp + _deadline # estabelece a deadline do projeto de crowdfunding
+    assert block.timestamp < self.deadline      # checa se o deadline foi ultrapassado 
+
+    self.owner = msg.sender # estabele que quem fez o deploy do contrato é o dono do crowdfunding e guarda seu endereço na variável
+    self.goal = _goal       # estabelece a meta a ser atingida pelo crowdfunding
+    self.crowdsum = 0       # somatório dos valores doados igual a 0 no início
+    self.end = False        # contrato não está encerrado
+
+# Função para realizar a doação dos valores para o crowdfunding    
+@external
+@payable
+def donation():
+    
+    assert block.timestamp < self.deadline # checa se o deadline foi ultrapassado
+
+    self.crowdsum += msg.value             # salva na variável de somatória o valor doado
+    self.donator[msg.sender] += msg.value  # salva na variável o valor doado
+
+# Função para sacar o dinheiro se o somatório bater a meta
+@external
+def finish():
+    assert block.timestamp < self.deadline # checa se o deadline foi ultrapassado
+   
+    assert msg.sender == self.owner        # checa se quem quer encerrar o contrato é o dono dele
+    assert self.crowdsum >= self.goal      # checa se o valor arrecadado foi maior ou igual a meta 
+    
+    self.end = True                        # encerra o contrato
+    send(msg.sender, self.crowdsum)        # após o encerramento do contrato, o valor arrecadado (se for maior que a meta) vai ser direcionado para o dono 
+
+# Função para realizar o retorno do dinheiro para os que doaram (quando a meta não for batida)
+@external
+def refund():
+    assert block.timestamp > self.deadline # checa se o deadline foi ultrapassado
+    assert self.crowdsum < self.goal       # checa se o valor arrecadado foi maior ou igual a meta 
+    
+    assert self.donator[msg.sender] > 0    # checa se este doador doou algum valor (se sim é necessário devolver)
+
+    send(msg.sender, donator[msg.sender])  # devolve o dinheiro para aqueles que doaram
+
+    self.donator[msg.sender] = 0           # valor doado fica igual a 0
+
+    self.end = True                        # encerra o contrato
