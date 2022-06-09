@@ -1,15 +1,16 @@
+@version ^0.2.2
 #APS - CrowdFunding
 #Aluno: Matheus Cerutti Savian
 
-donator: public(HashMap(uint256, address)) # dicionário para os doadores (key:value)
-owner: public(adress)                      # endereço do dono do crowdfunding
+donator: public(HashMap[address, uint256]) # dicionário para os doadores (key:value)
+owner: public(address)                     # endereço do dono do crowdfunding
 
 goal: uint256             # meta a ser batida
 crowdsum: public(uint256) # somatório do valor total arrecado
 
 deadline: public(uint256) # encerramento do crowdfunding
 
-end: public(bool)         # espécie de sinalização se o dono encerrou o crowdfunding
+end: bool                 # espécie de sinalização se o dono encerrou o crowdfunding
 
 # Função de deploy do contrato
 @external
@@ -57,3 +58,4 @@ def refund():
     self.donator[msg.sender] = 0           # valor doado fica igual a 0
 
     self.end = True                        # encerra o contrato
+
